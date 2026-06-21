@@ -118,7 +118,7 @@ The lifecycle-hook HUD works without the watcher.
 
 ## Standalone Installation
 
-Node.js 20+ and pnpm 9+ are required for source development or a global CLI:
+Node.js 20+ and pnpm 9 or 10 are required for source development or a global CLI:
 
 ```bash
 git clone https://github.com/tinyvane/codex-hud
