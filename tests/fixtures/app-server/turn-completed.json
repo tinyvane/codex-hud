@@ -1,0 +1,14 @@
+{
+  "jsonrpc": "2.0",
+  "method": "turn/completed",
+  "params": {
+    "turn": {
+      "id": "turn_001",
+      "status": "completed"
+    },
+    "tokenUsage": {
+      "inputTokens": 1500,
+      "outputTokens": 450
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "session_id": "sess_abc123",
+  "cwd": "/home/user/project",
+  "hook_event_name": "Stop",
+  "model": "o3",
+  "transcript_path": "/home/user/.codex/transcripts/sess_abc123.jsonl",
+  "turn_id": "turn_001",
+  "permission_mode": "auto",
+  "last_assistant_message": "Done! I've listed the directory contents.",
+  "stop_hook_active": false
+}

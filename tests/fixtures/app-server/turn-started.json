@@ -1,0 +1,10 @@
+{
+  "jsonrpc": "2.0",
+  "method": "turn/started",
+  "params": {
+    "turn": {
+      "id": "turn_001",
+      "status": "inProgress"
+    }
+  }
+}

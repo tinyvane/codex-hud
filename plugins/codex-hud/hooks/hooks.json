@@ -1,0 +1,77 @@
+{
+  "description": "Record Codex lifecycle activity for the local HUD.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/cli.js\" hook",
+            "commandWindows": "node \"%CLAUDE_PLUGIN_ROOT%/dist/cli.js\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/cli.js\" hook",
+            "commandWindows": "node \"%CLAUDE_PLUGIN_ROOT%/dist/cli.js\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/cli.js\" hook",
+            "commandWindows": "node \"%CLAUDE_PLUGIN_ROOT%/dist/cli.js\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/cli.js\" hook",
+            "commandWindows": "node \"%CLAUDE_PLUGIN_ROOT%/dist/cli.js\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/cli.js\" hook",
+            "commandWindows": "node \"%CLAUDE_PLUGIN_ROOT%/dist/cli.js\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/cli.js\" hook",
+            "commandWindows": "node \"%CLAUDE_PLUGIN_ROOT%/dist/cli.js\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

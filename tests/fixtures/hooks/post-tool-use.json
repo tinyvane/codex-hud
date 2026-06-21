@@ -1,0 +1,12 @@
+{
+  "session_id": "sess_abc123",
+  "cwd": "/home/user/project",
+  "hook_event_name": "PostToolUse",
+  "model": "o3",
+  "transcript_path": "/home/user/.codex/transcripts/sess_abc123.jsonl",
+  "turn_id": "turn_001",
+  "permission_mode": "auto",
+  "tool_name": "Bash",
+  "tool_input": { "command": "ls -la" },
+  "tool_response": { "output": "README.md\nsrc/\n", "exit_code": 0 }
+}

@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "method": "item/started",
+  "params": {
+    "item": {
+      "id": "item_002",
+      "type": "commandExecution",
+      "status": "inProgress",
+      "toolName": "Bash",
+      "command": "ls -la"
+    }
+  }
+}

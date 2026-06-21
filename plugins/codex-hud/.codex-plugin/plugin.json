@@ -1,0 +1,29 @@
+{
+  "name": "codex-hud",
+  "version": "0.1.0",
+  "description": "A local session HUD for OpenAI Codex",
+  "author": {
+    "name": "tinyvane",
+    "url": "https://github.com/tinyvane"
+  },
+  "homepage": "https://github.com/tinyvane/codex-hud#readme",
+  "repository": "https://github.com/tinyvane/codex-hud",
+  "license": "MIT",
+  "keywords": ["codex", "hud", "telemetry", "hooks", "status-line"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex HUD",
+    "shortDescription": "Inspect live Codex session and tool activity.",
+    "longDescription": "Codex HUD records supported lifecycle events into a sanitized local state file and renders a compact status line with model, Git branch, duration, tools, turns, agents, and token usage.",
+    "developerName": "tinyvane",
+    "category": "Developer Tools",
+    "capabilities": ["Lifecycle hooks", "Local telemetry", "Terminal status"],
+    "defaultPrompt": [
+      "Show my current Codex HUD status.",
+      "Verify that Codex HUD is working.",
+      "Explain how to add Codex HUD to my terminal."
+    ],
+    "brandColor": "#0F766E",
+    "websiteURL": "https://github.com/tinyvane/codex-hud"
+  }
+}

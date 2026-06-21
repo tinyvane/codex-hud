@@ -1,0 +1,12 @@
+{
+  "jsonrpc": "2.0",
+  "method": "item/started",
+  "params": {
+    "item": {
+      "id": "item_001",
+      "type": "toolCall",
+      "status": "inProgress",
+      "tool": "read_file"
+    }
+  }
+}

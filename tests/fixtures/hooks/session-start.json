@@ -1,0 +1,8 @@
+{
+  "session_id": "sess_abc123",
+  "cwd": "/home/user/project",
+  "hook_event_name": "SessionStart",
+  "model": "o3",
+  "transcript_path": "/home/user/.codex/transcripts/sess_abc123.jsonl",
+  "source": "startup"
+}

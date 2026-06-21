@@ -1,0 +1,10 @@
+{
+  "session_id": "sess_abc123",
+  "cwd": "/home/user/project",
+  "hook_event_name": "SubagentStart",
+  "model": "o3",
+  "transcript_path": "/home/user/.codex/transcripts/sess_abc123.jsonl",
+  "agent_id": "agent_001",
+  "agent_type": "coding",
+  "turn_id": "turn_002"
+}
