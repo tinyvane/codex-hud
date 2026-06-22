@@ -2,7 +2,7 @@
 
 An independent heads-up display for OpenAI Codex.
 
-> Status: `0.1.4` marketplace plugin candidate.
+> Status: `0.1.5` marketplace plugin candidate.
 
 ## Why A Separate Project?
 
@@ -86,9 +86,9 @@ hooks.
 
 Ask `@codex-hud Set up the visible Codex HUD status line.` The skill runs the
 bundled `setup` command, preserves existing status-line fields, backs up
-`~/.codex/config.toml`, and adds supported model, run state, context, primary and
-secondary account usage remaining, Git branch, and task progress fields. Restart
-Codex after configuration changes.
+`~/.codex/config.toml`, and adds supported model, run state, project name,
+context, primary and secondary account usage remaining, Git branch, and task
+progress fields. Restart Codex after configuration changes.
 
 ### 5. Verify
 
@@ -194,6 +194,12 @@ Install the Codex CLI and confirm `~/.codex/` exists, then re-run install.
 
 **The optional watcher cannot connect:**
 Start `codex app-server` with the same local transport expected by the watcher.
+
+**The status line does not show account usage reset times:**
+Codex 0.141.0 exposes remaining percentages through `five-hour-limit` and
+`weekly-limit`, but it does not provide native status-line fields for their
+reset timestamps. Run `/status` to inspect reset times. Upstream support is
+tracked in [openai/codex#24080](https://github.com/openai/codex/issues/24080).
 
 **Restoring a backup:**
 ```bash

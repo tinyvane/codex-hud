@@ -2,7 +2,7 @@
 
 ## Status
 
-M0 complete. M1 complete. M2 complete. M3 implementation complete; integration tests with live daemon pending. M4 active: marketplace runtime acceptance and native TUI setup, including account usage limits.
+M0 complete. M1 complete. M2 complete. M3 implementation complete; integration tests with live daemon pending. M4 active: marketplace runtime acceptance and native TUI setup, including project identity and account usage limits.
 
 ## Objective
 
@@ -163,6 +163,7 @@ and recovers from transport interruptions.
 - [x] Add versioning, changelog, release verification, and supply-chain checks.
 - [ ] Verify plugin hooks through a real App Server session on Windows, macOS, and Linux.
 - [x] Configure the supported native TUI status line through an explicit, reversible setup command.
+- [x] Include the current project directory name in the native TUI status line.
 - [x] Include native primary and secondary account usage remaining fields in the TUI status line.
 - [ ] Publish a `0.1.x` release only after MVP acceptance criteria pass.
 - [ ] Gather compatibility feedback before declaring stable support.

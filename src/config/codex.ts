@@ -19,6 +19,7 @@ export interface CodexConfig {
 export const HUD_STATUS_LINE = [
   'model-with-reasoning',
   'status',
+  'project-name',
   'context-remaining',
   'five-hour-limit',
   'weekly-limit',

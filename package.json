@@ -1,6 +1,6 @@
 {
   "name": "codex-hud",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Heads-up display for OpenAI Codex",
   "license": "MIT",
   "author": "tinyvane",

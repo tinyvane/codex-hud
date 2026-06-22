@@ -7,7 +7,8 @@ import {
 } from '../src/config/codex.js';
 
 describe('native Codex HUD status line', () => {
-  it('includes context and account usage remaining fields', () => {
+  it('includes project, context, and account usage remaining fields', () => {
+    expect(HUD_STATUS_LINE).toContain('project-name');
     expect(HUD_STATUS_LINE).toContain('context-remaining');
     expect(HUD_STATUS_LINE).toContain('five-hour-limit');
     expect(HUD_STATUS_LINE).toContain('weekly-limit');

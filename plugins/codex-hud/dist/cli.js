@@ -57,7 +57,7 @@ var HUD_VERSION, INITIAL_STATE;
 var init_types = __esm({
   "src/state/types.ts"() {
     "use strict";
-    HUD_VERSION = "0.1.4";
+    HUD_VERSION = "0.1.5";
     INITIAL_STATE = {
       sessionId: null,
       sessionStart: null,
@@ -1084,6 +1084,7 @@ var init_codex = __esm({
     HUD_STATUS_LINE = [
       "model-with-reasoning",
       "status",
+      "project-name",
       "context-remaining",
       "five-hour-limit",
       "weekly-limit",

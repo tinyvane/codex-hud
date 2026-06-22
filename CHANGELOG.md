@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.5 - 2026-06-22
+
+- Add Codex's native project-name field so the TUI status line shows the current
+  working project directory name.
+- Document the upstream limitation that prevents native rate-limit reset times
+  from appearing in the status line.
+
 ## 0.1.4 - 2026-06-22
 
 - Add Codex's native primary and secondary account usage remaining fields to
