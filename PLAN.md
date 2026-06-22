@@ -162,7 +162,7 @@ and recovers from transport interruptions.
 - [x] Add a repository marketplace and validate install, update, and uninstall behavior.
 - [x] Add versioning, changelog, release verification, and supply-chain checks.
 - [ ] Verify plugin hooks through a real App Server session on Windows, macOS, and Linux.
-- [ ] Configure the supported native TUI status line through an explicit, reversible setup command.
+- [x] Configure the supported native TUI status line through an explicit, reversible setup command.
 - [ ] Publish a `0.1.x` release only after MVP acceptance criteria pass.
 - [ ] Gather compatibility feedback before declaring stable support.
 
