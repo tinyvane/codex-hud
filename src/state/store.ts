@@ -18,9 +18,15 @@ const delay = async (milliseconds: number): Promise<void> =>
 export async function readState(): Promise<HudState> {
   try {
     const raw = await readFile(STATE_FILE, 'utf8');
-    const parsed = JSON.parse(raw) as HudState;
+    const parsed = JSON.parse(raw) as Partial<HudState>;
     // Ensure hudVersion reflects the running binary, not an old saved value
-    return { ...parsed, hudVersion: HUD_VERSION };
+    return {
+      ...INITIAL_STATE,
+      ...parsed,
+      tokens: { ...INITIAL_STATE.tokens, ...parsed.tokens },
+      rateLimits: { ...INITIAL_STATE.rateLimits, ...parsed.rateLimits },
+      hudVersion: HUD_VERSION,
+    };
   } catch {
     return { ...INITIAL_STATE };
   }

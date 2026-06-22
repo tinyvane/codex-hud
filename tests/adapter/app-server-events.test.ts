@@ -47,6 +47,64 @@ describe('applyNotification - thread/tokenUsage/updated', () => {
   });
 });
 
+describe('applyNotification - account/rateLimits/updated', () => {
+  it('caches both reset timestamps from the generated protocol shape', () => {
+    const n = loadNotification('rate-limits-updated.json');
+    const next = applyNotification(INITIAL_STATE, n, NOW);
+
+    expect(next.rateLimits.primary).toEqual({
+      usedPercent: 92,
+      windowDurationMins: 300,
+      resetsAt: 1700003600,
+    });
+    expect(next.rateLimits.secondary).toEqual({
+      usedPercent: 82,
+      windowDurationMins: 10080,
+      resetsAt: 1700604800,
+    });
+  });
+
+  it('merges sparse values without clearing cached reset timestamps', () => {
+    const state = applyNotification(
+      INITIAL_STATE,
+      loadNotification('rate-limits-updated.json'),
+      NOW,
+    );
+    const update: JsonRpcNotification = {
+      jsonrpc: '2.0',
+      method: 'account/rateLimits/updated',
+      params: {
+        rateLimits: {
+          primary: { usedPercent: 93, windowDurationMins: null, resetsAt: null },
+          secondary: null,
+        },
+      },
+    };
+
+    const next = applyNotification(state, update, NOW + 1);
+    expect(next.rateLimits.primary).toEqual({
+      usedPercent: 93,
+      windowDurationMins: 300,
+      resetsAt: 1700003600,
+    });
+    expect(next.rateLimits.secondary).toBe(state.rateLimits.secondary);
+  });
+
+  it('ignores malformed window values', () => {
+    const malformed: JsonRpcNotification = {
+      jsonrpc: '2.0',
+      method: 'account/rateLimits/updated',
+      params: {
+        rateLimits: {
+          primary: { usedPercent: '92', windowDurationMins: 300, resetsAt: '1700003600' },
+        },
+      },
+    };
+
+    expect(applyNotification(INITIAL_STATE, malformed, NOW)).toBe(INITIAL_STATE);
+  });
+});
+
 describe('applyNotification - turn/completed', () => {
   it('increments turnCount and clears activeTool', () => {
     const state = { ...INITIAL_STATE, turnCount: 2, activeTool: 'read_file' };

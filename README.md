@@ -2,7 +2,7 @@
 
 An independent heads-up display for OpenAI Codex.
 
-> Status: `0.1.5` marketplace plugin candidate.
+> Status: `0.1.6` marketplace plugin candidate.
 
 ## Why A Separate Project?
 
@@ -30,7 +30,7 @@ therefore uses two supported surfaces:
 The hook-backed line has this format:
 
 ```
-o3 @main 2m30s | > Bash | turns:4 | v0.0.1
+o3 @main 2m30s | > Bash | turns:4 | 5h reset 01:29 23 Jun | 7d reset 15:14 27 Jun | v0.1.6
 ```
 
 Fields (left to right):
@@ -45,6 +45,8 @@ Fields (left to right):
 | `+ Tool` / `x Tool` | Last completed tool (green + or red x) |
 | `turns:N` | Completed turns this session |
 | `agents:N` | Subagents spawned (shown when non-zero) |
+| `5h reset ...` | Primary account rate-limit reset in the local timezone |
+| `7d reset ...` | Secondary account rate-limit reset in the local timezone |
 | Version | codex-hud version |
 
 ## Marketplace Installation
@@ -129,7 +131,7 @@ Ask `@codex-hud Show my current Codex HUD status.`
 Example output (ANSI-colored in a real terminal):
 
 ```
-o3 @main 2m30s | > Bash | turns:3 | v0.0.1
+o3 @main 2m30s | > Bash | turns:3 | 5h reset 01:29 23 Jun | 7d reset 15:14 27 Jun | v0.1.6
 ```
 
 For a stable shell or tmux integration, use the standalone installation below
@@ -154,6 +156,11 @@ codex app-server --listen unix://
 ```
 
 The lifecycle-hook HUD works without the watcher.
+
+`codex-hud status` also reads `account/rateLimits/read` through a short-lived
+stdio App Server when no current snapshot is cached. It stores only normalized
+window percentages, durations, and reset timestamps, then reuses them until a
+known window expires. This path works on Windows without the Unix-only daemon.
 
 ## Standalone Installation
 
@@ -195,11 +202,13 @@ Install the Codex CLI and confirm `~/.codex/` exists, then re-run install.
 **The optional watcher cannot connect:**
 Start `codex app-server` with the same local transport expected by the watcher.
 
-**The status line does not show account usage reset times:**
+**The native status line does not show account usage reset times:**
 Codex 0.141.0 exposes remaining percentages through `five-hour-limit` and
 `weekly-limit`, but it does not provide native status-line fields for their
-reset timestamps. Run `/status` to inspect reset times. Upstream support is
-tracked in [openai/codex#24080](https://github.com/openai/codex/issues/24080).
+reset timestamps. Run the hook-backed `codex-hud status` command to fetch and
+cache the structured App Server timestamps, or run `/status` inside Codex.
+Native footer support is tracked in
+[openai/codex#24080](https://github.com/openai/codex/issues/24080).
 
 **Restoring a backup:**
 ```bash

@@ -7,8 +7,9 @@ import type {
   TurnCompletedParams,
   ItemStartedParams,
   ItemCompletedParams,
+  AccountRateLimitsUpdatedParams,
 } from './schema.js';
-import type { HudState } from '../../state/types.js';
+import type { HudState, RateLimitWindowState } from '../../state/types.js';
 
 const TOOL_ITEM_TYPES = new Set(['toolCall', 'commandExecution']);
 
@@ -23,6 +24,53 @@ function toolNameFromItem(
   return item.tool ?? item.toolName ?? null;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isIntegerInRange(value: unknown, minimum: number, maximum: number): value is number {
+  return (
+    typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum && value <= maximum
+  );
+}
+
+function mergeRateLimitWindow(
+  current: RateLimitWindowState | null,
+  value: unknown,
+): RateLimitWindowState | null {
+  if (!isRecord(value) || !isIntegerInRange(value['usedPercent'], 0, 100)) return current;
+
+  const duration = value['windowDurationMins'];
+  const reset = value['resetsAt'];
+  return {
+    usedPercent: value['usedPercent'],
+    windowDurationMins: isIntegerInRange(duration, 1, Number.MAX_SAFE_INTEGER)
+      ? duration
+      : (current?.windowDurationMins ?? null),
+    resetsAt: isIntegerInRange(reset, 1, Number.MAX_SAFE_INTEGER)
+      ? reset
+      : (current?.resetsAt ?? null),
+  };
+}
+
+function applyRateLimits(state: HudState, params: unknown, now: number): HudState {
+  if (!isRecord(params) || !isRecord(params['rateLimits'])) return state;
+
+  const rateLimits = params[
+    'rateLimits'
+  ] as unknown as AccountRateLimitsUpdatedParams['rateLimits'];
+  const primary = mergeRateLimitWindow(state.rateLimits.primary, rateLimits.primary);
+  const secondary = mergeRateLimitWindow(state.rateLimits.secondary, rateLimits.secondary);
+  if (primary === state.rateLimits.primary && secondary === state.rateLimits.secondary)
+    return state;
+
+  return {
+    ...state,
+    lastUpdated: now,
+    rateLimits: { primary, secondary },
+  };
+}
+
 // Apply a single App Server notification to the current state.
 // Returns the same state reference if no relevant fields changed.
 export function applyNotification(
@@ -33,6 +81,9 @@ export function applyNotification(
   const base: Pick<HudState, 'lastUpdated'> = { lastUpdated: now };
 
   switch (notification.method) {
+    case 'account/rateLimits/updated':
+      return applyRateLimits(state, notification.params, now);
+
     case 'thread/tokenUsage/updated': {
       const p = notification.params as TokenUsageParams;
       return {

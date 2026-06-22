@@ -2,7 +2,11 @@
 
 ## Status
 
-M0 complete. M1 complete. M2 complete. M3 implementation complete; integration tests with live daemon pending. M4 active: marketplace runtime acceptance and native TUI setup, including project identity and account usage limits.
+M0 complete. M1 complete. M2 complete. M3 implementation complete, including
+cached account rate-limit reset timestamps from the generated Codex 0.141.0 App
+Server protocol; integration tests with a live daemon remain pending. M4 active:
+marketplace runtime acceptance and native TUI setup, including project identity
+and account usage limits.
 
 ## Objective
 
@@ -148,6 +152,8 @@ Exit criterion: a new user can install, verify, and remove the MVP safely.
 
 - [x] Add an App Server client using generated schemas.
 - [x] Track turns, tool calls, failures, token usage, and subagents.
+- [x] Cache primary and secondary account rate-limit reset timestamps from the
+  structured App Server snapshot and render them in the hook-backed HUD.
 - [x] Handle reconnect, resume, compaction, malformed events, and shutdown.
 - [ ] Bound memory, cache size, and rendering frequency.
 - [ ] Add integration tests with recorded event streams (requires live daemon).

@@ -1,5 +1,5 @@
 import { sanitize, withReset } from './sanitize.js';
-import { formatDuration, formatTokens } from './format.js';
+import { formatDuration, formatRateLimitWindow, formatResetTime, formatTokens } from './format.js';
 import type { HudState } from '../state/types.js';
 
 const DIM = '\x1b[2m';
@@ -44,6 +44,18 @@ export function renderStatusLine(state: HudState, now: number): string {
 
   if (state.subagentCount > 0) {
     parts.push(`agents:${state.subagentCount}`);
+  }
+
+  const limits = [
+    { window: state.rateLimits.primary, fallback: 'primary' },
+    { window: state.rateLimits.secondary, fallback: 'secondary' },
+  ];
+  for (const { window, fallback } of limits) {
+    if (window?.resetsAt === null || window === null || window.resetsAt * 1000 <= now) continue;
+    const reset = formatResetTime(window.resetsAt);
+    if (!reset) continue;
+    const label = formatRateLimitWindow(window.windowDurationMins, fallback);
+    parts.push(`${DIM}${label} reset ${reset}${RESET}`);
   }
 
   parts.push(`${DIM}v${sanitize(state.hudVersion)}${RESET}`);

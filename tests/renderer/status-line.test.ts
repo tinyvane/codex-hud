@@ -76,6 +76,42 @@ describe('renderStatusLine', () => {
     expect(line).toContain('tok:1.5k');
   });
 
+  it('shows cached primary and secondary reset times', () => {
+    const primaryReset = new Date(NOW + 60 * 60 * 1000);
+    const secondaryReset = new Date(NOW + 7 * 24 * 60 * 60 * 1000);
+    const state = {
+      ...INITIAL_STATE,
+      rateLimits: {
+        primary: {
+          usedPercent: 92,
+          windowDurationMins: 300,
+          resetsAt: Math.floor(primaryReset.getTime() / 1000),
+        },
+        secondary: {
+          usedPercent: 82,
+          windowDurationMins: 10080,
+          resetsAt: Math.floor(secondaryReset.getTime() / 1000),
+        },
+      },
+    };
+
+    const line = renderStatusLine(state, NOW);
+    expect(line).toContain('5h reset');
+    expect(line).toContain('7d reset');
+  });
+
+  it('omits expired reset timestamps', () => {
+    const state = {
+      ...INITIAL_STATE,
+      rateLimits: {
+        primary: { usedPercent: 0, windowDurationMins: 300, resetsAt: NOW / 1000 - 1 },
+        secondary: null,
+      },
+    };
+
+    expect(renderStatusLine(state, NOW)).not.toContain('reset');
+  });
+
   it('sanitizes malicious ANSI in model name', () => {
     const state = { ...INITIAL_STATE, model: 'o3\x1b[31m-evil' };
     const line = renderStatusLine(state, NOW);

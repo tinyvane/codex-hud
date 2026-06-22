@@ -46,6 +46,25 @@ describe('parseMessage', () => {
   });
 });
 
+describe('Codex 0.141.0 generated rate-limit schema', () => {
+  it('defines reset timestamps as nullable int64 values', () => {
+    const path = join(
+      import.meta.dirname,
+      '../../schemas/app-server/0.141.0/GetAccountRateLimitsResponse.json',
+    );
+    const schema = JSON.parse(readFileSync(path, 'utf8')) as {
+      definitions: {
+        RateLimitWindow: { properties: { resetsAt: { format: string; type: string[] } } };
+      };
+    };
+
+    expect(schema.definitions.RateLimitWindow.properties.resetsAt).toEqual({
+      type: ['integer', 'null'],
+      format: 'int64',
+    });
+  });
+});
+
 describe('isNotification', () => {
   it('returns true for a notification (method, no id)', () => {
     const msg = parseMessage(fixture('turn-started.json'))!;

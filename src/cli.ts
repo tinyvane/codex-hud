@@ -27,8 +27,30 @@ async function main(): Promise<void> {
     }
 
     case 'status': {
-      const state = await readState();
-      const line = renderStatusLine(state, Date.now());
+      const now = Date.now();
+      let state = await readState();
+      const { readRateLimitsFromCodex, shouldRefreshRateLimits } =
+        await import('./adapter/app-server/rate-limits.js');
+      if (shouldRefreshRateLimits(state, now)) {
+        try {
+          const result = await readRateLimitsFromCodex();
+          const { applyNotification } = await import('./adapter/app-server/events.js');
+          state = await updateState((current) =>
+            applyNotification(
+              current,
+              {
+                jsonrpc: '2.0',
+                method: 'account/rateLimits/updated',
+                params: { rateLimits: result.rateLimits },
+              },
+              Date.now(),
+            ),
+          );
+        } catch {
+          // The HUD remains usable from cached hook state when Codex cannot be started.
+        }
+      }
+      const line = renderStatusLine(state, now);
       process.stdout.write(line + '\n');
       break;
     }

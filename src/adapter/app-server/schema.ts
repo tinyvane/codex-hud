@@ -77,6 +77,27 @@ export interface InitializeResult {
   platformOs?: string;
 }
 
+// Generated protocol inputs:
+// schemas/app-server/0.141.0/{GetAccountRateLimitsResponse,AccountRateLimitsUpdatedNotification}.json
+export interface RateLimitWindow {
+  usedPercent: number;
+  windowDurationMins: number | null;
+  resetsAt: number | null;
+}
+
+export interface RateLimitSnapshot {
+  primary: RateLimitWindow | null;
+  secondary: RateLimitWindow | null;
+}
+
+export interface GetAccountRateLimitsResponse {
+  rateLimits: RateLimitSnapshot;
+}
+
+export interface AccountRateLimitsUpdatedParams {
+  rateLimits: RateLimitSnapshot;
+}
+
 // ---------------------------------------------------------------------------
 // App Server notification param shapes
 // ---------------------------------------------------------------------------

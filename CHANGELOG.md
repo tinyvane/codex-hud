@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.6 - 2026-06-22
+
+- Read primary and secondary rate-limit reset timestamps from the generated
+  Codex 0.141.0 App Server protocol instead of parsing terminal output.
+- Cache reset timestamps in normalized HUD state and render current windows in
+  the local timezone.
+- Refresh missing or expired snapshots through a short-lived stdio App Server,
+  including on Windows where the managed daemon is unavailable.
+
 ## 0.1.5 - 2026-06-22
 
 - Add Codex's native project-name field so the TUI status line shows the current

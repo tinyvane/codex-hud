@@ -57,7 +57,7 @@ var HUD_VERSION, INITIAL_STATE;
 var init_types = __esm({
   "src/state/types.ts"() {
     "use strict";
-    HUD_VERSION = "0.1.5";
+    HUD_VERSION = "0.1.6";
     INITIAL_STATE = {
       sessionId: null,
       sessionStart: null,
@@ -65,6 +65,7 @@ var init_types = __esm({
       cwd: null,
       gitBranch: null,
       tokens: { inputUsed: 0, outputUsed: 0, contextLimit: null },
+      rateLimits: { primary: null, secondary: null },
       activeTool: null,
       lastToolName: null,
       lastToolStatus: null,
@@ -75,6 +76,228 @@ var init_types = __esm({
       hudVersion: HUD_VERSION,
       appServerConnected: false
     };
+  }
+});
+
+// src/adapter/app-server/rate-limits.ts
+var rate_limits_exports = {};
+__export(rate_limits_exports, {
+  readRateLimitsFromCodex: () => readRateLimitsFromCodex,
+  shouldRefreshRateLimits: () => shouldRefreshRateLimits
+});
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
+function parseStdioResponse(line) {
+  try {
+    const value = JSON.parse(line);
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+    const response = value;
+    if (typeof response["id"] !== "number") return null;
+    const error = response["error"];
+    if (error !== void 0) {
+      if (typeof error !== "object" || error === null || Array.isArray(error)) return null;
+      const message = error["message"];
+      if (typeof message !== "string") return null;
+      return { id: response["id"], error: { message } };
+    }
+    return { id: response["id"], result: response["result"] };
+  } catch {
+    return null;
+  }
+}
+function spawnCodexAppServer() {
+  if (process.platform === "win32") {
+    return spawn(
+      process.env["ComSpec"] ?? "cmd.exe",
+      ["/d", "/s", "/c", "codex app-server --stdio"],
+      { windowsHide: true }
+    );
+  }
+  return spawn("codex", ["app-server", "--stdio"], { windowsHide: true });
+}
+function shouldRefreshRateLimits(state, now) {
+  const windows = [state.rateLimits.primary, state.rateLimits.secondary].filter(
+    (window) => window !== null
+  );
+  if (windows.length === 0) return true;
+  return windows.some((window) => window.resetsAt === null || window.resetsAt * 1e3 <= now);
+}
+function readRateLimitsFromCodex(options = {}) {
+  return new Promise((resolve2, reject) => {
+    const child = (options.spawnCodex ?? spawnCodexAppServer)();
+    child.stderr.resume();
+    const lines = createInterface({ input: child.stdout });
+    let settled = false;
+    const cleanup = () => {
+      clearTimeout(timer);
+      lines.close();
+      child.stdin.end();
+      child.kill();
+    };
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+    const succeed = (result) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve2(result);
+    };
+    const send = (message) => {
+      child.stdin.write(`${JSON.stringify(message)}
+`);
+    };
+    const timer = setTimeout(
+      () => fail(new Error("Timed out reading Codex rate limits")),
+      options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+    );
+    child.once("error", (error) => fail(error));
+    child.once("exit", (code) => {
+      if (!settled)
+        fail(new Error(`Codex App Server exited before responding (${code ?? "signal"})`));
+    });
+    lines.on("line", (line) => {
+      const message = parseStdioResponse(line);
+      if (!message) return;
+      if (message.error) {
+        fail(new Error(message.error.message));
+        return;
+      }
+      if (message.id === INITIALIZE_REQUEST_ID) {
+        send({ method: "initialized" });
+        send({
+          id: RATE_LIMITS_REQUEST_ID,
+          method: "account/rateLimits/read"
+        });
+      } else if (message.id === RATE_LIMITS_REQUEST_ID) {
+        succeed(message.result);
+      }
+    });
+    send({
+      id: INITIALIZE_REQUEST_ID,
+      method: "initialize",
+      params: {
+        clientInfo: { name: "codex-hud", title: "Codex HUD", version: HUD_VERSION },
+        capabilities: { experimentalApi: true }
+      }
+    });
+  });
+}
+var INITIALIZE_REQUEST_ID, RATE_LIMITS_REQUEST_ID, DEFAULT_TIMEOUT_MS;
+var init_rate_limits = __esm({
+  "src/adapter/app-server/rate-limits.ts"() {
+    "use strict";
+    init_types();
+    INITIALIZE_REQUEST_ID = 1;
+    RATE_LIMITS_REQUEST_ID = 2;
+    DEFAULT_TIMEOUT_MS = 1e4;
+  }
+});
+
+// src/adapter/app-server/events.ts
+var events_exports = {};
+__export(events_exports, {
+  applyNotification: () => applyNotification
+});
+function isToolItem(type) {
+  return TOOL_ITEM_TYPES.has(type);
+}
+function toolNameFromItem(item) {
+  return item.tool ?? item.toolName ?? null;
+}
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isIntegerInRange(value, minimum, maximum) {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= minimum && value <= maximum;
+}
+function mergeRateLimitWindow(current, value) {
+  if (!isRecord(value) || !isIntegerInRange(value["usedPercent"], 0, 100)) return current;
+  const duration = value["windowDurationMins"];
+  const reset = value["resetsAt"];
+  return {
+    usedPercent: value["usedPercent"],
+    windowDurationMins: isIntegerInRange(duration, 1, Number.MAX_SAFE_INTEGER) ? duration : current?.windowDurationMins ?? null,
+    resetsAt: isIntegerInRange(reset, 1, Number.MAX_SAFE_INTEGER) ? reset : current?.resetsAt ?? null
+  };
+}
+function applyRateLimits(state, params, now) {
+  if (!isRecord(params) || !isRecord(params["rateLimits"])) return state;
+  const rateLimits = params["rateLimits"];
+  const primary = mergeRateLimitWindow(state.rateLimits.primary, rateLimits.primary);
+  const secondary = mergeRateLimitWindow(state.rateLimits.secondary, rateLimits.secondary);
+  if (primary === state.rateLimits.primary && secondary === state.rateLimits.secondary)
+    return state;
+  return {
+    ...state,
+    lastUpdated: now,
+    rateLimits: { primary, secondary }
+  };
+}
+function applyNotification(state, notification, now) {
+  const base = { lastUpdated: now };
+  switch (notification.method) {
+    case "account/rateLimits/updated":
+      return applyRateLimits(state, notification.params, now);
+    case "thread/tokenUsage/updated": {
+      const p = notification.params;
+      return {
+        ...state,
+        ...base,
+        tokens: {
+          inputUsed: p.usage.inputTokens ?? state.tokens.inputUsed,
+          outputUsed: p.usage.outputTokens ?? state.tokens.outputUsed,
+          contextLimit: p.usage.contextLimit !== void 0 ? p.usage.contextLimit : state.tokens.contextLimit
+        }
+      };
+    }
+    case "turn/started":
+      return { ...state, ...base };
+    case "turn/completed": {
+      const p = notification.params;
+      const next = {
+        ...state,
+        ...base,
+        activeTool: null,
+        turnCount: state.turnCount + 1
+      };
+      if (p.tokenUsage) {
+        next.tokens = {
+          inputUsed: p.tokenUsage.inputTokens ?? state.tokens.inputUsed,
+          outputUsed: p.tokenUsage.outputTokens ?? state.tokens.outputUsed,
+          contextLimit: state.tokens.contextLimit
+        };
+      }
+      return next;
+    }
+    case "item/started": {
+      const p = notification.params;
+      if (!isToolItem(p.item.type)) return { ...state, ...base };
+      return { ...state, ...base, activeTool: toolNameFromItem(p.item) };
+    }
+    case "item/completed": {
+      const p = notification.params;
+      if (!isToolItem(p.item.type)) return { ...state, ...base };
+      return {
+        ...state,
+        ...base,
+        activeTool: null,
+        lastToolName: toolNameFromItem(p.item),
+        lastToolStatus: p.item.status === "failed" ? "error" : "success"
+      };
+    }
+    default:
+      return state;
+  }
+}
+var TOOL_ITEM_TYPES;
+var init_events = __esm({
+  "src/adapter/app-server/events.ts"() {
+    "use strict";
+    TOOL_ITEM_TYPES = /* @__PURE__ */ new Set(["toolCall", "commandExecution"]);
   }
 });
 
@@ -4991,6 +5214,9 @@ var init_client = __esm({
           this.reconnectDelay = RECONNECT_BASE_MS;
           this.initialize().then(() => {
             this.opts.onConnected?.();
+            void this.publishRateLimitsSnapshot().catch((err) => {
+              this.opts.onError?.(new Error(`rate-limit read failed: ${err.message}`));
+            });
           }).catch((err) => {
             this.opts.onError?.(new Error(`initialize failed: ${err.message}`));
             ws.close();
@@ -5042,6 +5268,14 @@ var init_client = __esm({
         this.sendRaw({ jsonrpc: "2.0", method: "initialized" });
         return result;
       }
+      async publishRateLimitsSnapshot() {
+        const result = await this.call("account/rateLimits/read");
+        this.opts.onNotification({
+          jsonrpc: "2.0",
+          method: "account/rateLimits/updated",
+          params: { rateLimits: result.rateLimits }
+        });
+      }
       handleRaw(raw) {
         const msg = parseMessage(raw);
         if (!msg) return;
@@ -5066,79 +5300,6 @@ var init_client = __esm({
   }
 });
 
-// src/adapter/app-server/events.ts
-var events_exports = {};
-__export(events_exports, {
-  applyNotification: () => applyNotification
-});
-function isToolItem(type) {
-  return TOOL_ITEM_TYPES.has(type);
-}
-function toolNameFromItem(item) {
-  return item.tool ?? item.toolName ?? null;
-}
-function applyNotification(state, notification, now) {
-  const base = { lastUpdated: now };
-  switch (notification.method) {
-    case "thread/tokenUsage/updated": {
-      const p = notification.params;
-      return {
-        ...state,
-        ...base,
-        tokens: {
-          inputUsed: p.usage.inputTokens ?? state.tokens.inputUsed,
-          outputUsed: p.usage.outputTokens ?? state.tokens.outputUsed,
-          contextLimit: p.usage.contextLimit !== void 0 ? p.usage.contextLimit : state.tokens.contextLimit
-        }
-      };
-    }
-    case "turn/started":
-      return { ...state, ...base };
-    case "turn/completed": {
-      const p = notification.params;
-      const next = {
-        ...state,
-        ...base,
-        activeTool: null,
-        turnCount: state.turnCount + 1
-      };
-      if (p.tokenUsage) {
-        next.tokens = {
-          inputUsed: p.tokenUsage.inputTokens ?? state.tokens.inputUsed,
-          outputUsed: p.tokenUsage.outputTokens ?? state.tokens.outputUsed,
-          contextLimit: state.tokens.contextLimit
-        };
-      }
-      return next;
-    }
-    case "item/started": {
-      const p = notification.params;
-      if (!isToolItem(p.item.type)) return { ...state, ...base };
-      return { ...state, ...base, activeTool: toolNameFromItem(p.item) };
-    }
-    case "item/completed": {
-      const p = notification.params;
-      if (!isToolItem(p.item.type)) return { ...state, ...base };
-      return {
-        ...state,
-        ...base,
-        activeTool: null,
-        lastToolName: toolNameFromItem(p.item),
-        lastToolStatus: p.item.status === "failed" ? "error" : "success"
-      };
-    }
-    default:
-      return state;
-  }
-}
-var TOOL_ITEM_TYPES;
-var init_events = __esm({
-  "src/adapter/app-server/events.ts"() {
-    "use strict";
-    TOOL_ITEM_TYPES = /* @__PURE__ */ new Set(["toolCall", "commandExecution"]);
-  }
-});
-
 // src/state/store.ts
 init_types();
 import { open, readFile, writeFile, mkdir, rename, stat, unlink } from "node:fs/promises";
@@ -5155,7 +5316,13 @@ async function readState() {
   try {
     const raw = await readFile(STATE_FILE, "utf8");
     const parsed = JSON.parse(raw);
-    return { ...parsed, hudVersion: HUD_VERSION };
+    return {
+      ...INITIAL_STATE,
+      ...parsed,
+      tokens: { ...INITIAL_STATE.tokens, ...parsed.tokens },
+      rateLimits: { ...INITIAL_STATE.rateLimits, ...parsed.rateLimits },
+      hudVersion: HUD_VERSION
+    };
   } catch {
     return { ...INITIAL_STATE };
   }
@@ -5364,6 +5531,22 @@ function formatTokens(n) {
   if (n < 1e6) return `${(n / 1e3).toFixed(1)}k`;
   return `${(n / 1e6).toFixed(2)}M`;
 }
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function formatResetTime(epochSeconds) {
+  if (!Number.isSafeInteger(epochSeconds) || epochSeconds <= 0) return null;
+  const date = new Date(epochSeconds * 1e3);
+  if (Number.isNaN(date.getTime())) return null;
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${hours}:${minutes} ${day} ${MONTHS[date.getMonth()]}`;
+}
+function formatRateLimitWindow(minutes, fallback) {
+  if (minutes === null || !Number.isSafeInteger(minutes) || minutes <= 0) return fallback;
+  if (minutes % 1440 === 0) return `${minutes / 1440}d`;
+  if (minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${minutes}m`;
+}
 
 // src/renderer/status-line.ts
 var DIM = "\x1B[2m";
@@ -5400,6 +5583,17 @@ function renderStatusLine(state, now) {
   }
   if (state.subagentCount > 0) {
     parts.push(`agents:${state.subagentCount}`);
+  }
+  const limits = [
+    { window: state.rateLimits.primary, fallback: "primary" },
+    { window: state.rateLimits.secondary, fallback: "secondary" }
+  ];
+  for (const { window, fallback } of limits) {
+    if (window?.resetsAt === null || window === null || window.resetsAt * 1e3 <= now) continue;
+    const reset = formatResetTime(window.resetsAt);
+    if (!reset) continue;
+    const label = formatRateLimitWindow(window.windowDurationMins, fallback);
+    parts.push(`${DIM}${label} reset ${reset}${RESET}`);
   }
   parts.push(`${DIM}v${sanitize(state.hudVersion)}${RESET}`);
   return withReset(parts.join(SEP));
@@ -5449,8 +5643,28 @@ async function main() {
       break;
     }
     case "status": {
-      const state = await readState();
-      const line = renderStatusLine(state, Date.now());
+      const now = Date.now();
+      let state = await readState();
+      const { readRateLimitsFromCodex: readRateLimitsFromCodex2, shouldRefreshRateLimits: shouldRefreshRateLimits2 } = await Promise.resolve().then(() => (init_rate_limits(), rate_limits_exports));
+      if (shouldRefreshRateLimits2(state, now)) {
+        try {
+          const result = await readRateLimitsFromCodex2();
+          const { applyNotification: applyNotification2 } = await Promise.resolve().then(() => (init_events(), events_exports));
+          state = await updateState(
+            (current) => applyNotification2(
+              current,
+              {
+                jsonrpc: "2.0",
+                method: "account/rateLimits/updated",
+                params: { rateLimits: result.rateLimits }
+              },
+              Date.now()
+            )
+          );
+        } catch {
+        }
+      }
+      const line = renderStatusLine(state, now);
       process.stdout.write(line + "\n");
       break;
     }

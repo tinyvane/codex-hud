@@ -1,9 +1,20 @@
-export const HUD_VERSION = '0.1.5';
+export const HUD_VERSION = '0.1.6';
 
 export interface TokenUsage {
   inputUsed: number;
   outputUsed: number;
   contextLimit: number | null;
+}
+
+export interface RateLimitWindowState {
+  usedPercent: number;
+  windowDurationMins: number | null;
+  resetsAt: number | null;
+}
+
+export interface RateLimitsState {
+  primary: RateLimitWindowState | null;
+  secondary: RateLimitWindowState | null;
 }
 
 export interface HudState {
@@ -13,6 +24,7 @@ export interface HudState {
   cwd: string | null;
   gitBranch: string | null;
   tokens: TokenUsage;
+  rateLimits: RateLimitsState;
   activeTool: string | null;
   lastToolName: string | null;
   lastToolStatus: 'success' | 'error' | null;
@@ -31,6 +43,7 @@ export const INITIAL_STATE: HudState = {
   cwd: null,
   gitBranch: null,
   tokens: { inputUsed: 0, outputUsed: 0, contextLimit: null },
+  rateLimits: { primary: null, secondary: null },
   activeTool: null,
   lastToolName: null,
   lastToolStatus: null,

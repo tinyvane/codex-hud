@@ -2,7 +2,12 @@ import WebSocket from 'ws';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseMessage, isNotification, isResponse } from './schema.js';
-import type { JsonRpcNotification, InitializeParams, InitializeResult } from './schema.js';
+import type {
+  GetAccountRateLimitsResponse,
+  JsonRpcNotification,
+  InitializeParams,
+  InitializeResult,
+} from './schema.js';
 
 export const DEFAULT_SOCKET_PATH = join(
   homedir(),
@@ -74,6 +79,9 @@ export class AppServerClient {
       this.initialize()
         .then(() => {
           this.opts.onConnected?.();
+          void this.publishRateLimitsSnapshot().catch((err: Error) => {
+            this.opts.onError?.(new Error(`rate-limit read failed: ${err.message}`));
+          });
         })
         .catch((err: Error) => {
           this.opts.onError?.(new Error(`initialize failed: ${err.message}`));
@@ -133,6 +141,15 @@ export class AppServerClient {
     // Acknowledge initialization before any other method calls
     this.sendRaw({ jsonrpc: '2.0', method: 'initialized' });
     return result;
+  }
+
+  private async publishRateLimitsSnapshot(): Promise<void> {
+    const result = (await this.call('account/rateLimits/read')) as GetAccountRateLimitsResponse;
+    this.opts.onNotification({
+      jsonrpc: '2.0',
+      method: 'account/rateLimits/updated',
+      params: { rateLimits: result.rateLimits },
+    });
   }
 
   private handleRaw(raw: string): void {

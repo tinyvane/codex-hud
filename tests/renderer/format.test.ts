@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { formatDuration, formatTokens } from '../../src/renderer/format.js';
+import {
+  formatDuration,
+  formatRateLimitWindow,
+  formatResetTime,
+  formatTokens,
+} from '../../src/renderer/format.js';
 
 describe('formatDuration', () => {
   it('returns 0s for zero', () => {
@@ -48,5 +53,29 @@ describe('formatTokens', () => {
   it('formats millions with M suffix', () => {
     expect(formatTokens(1_000_000)).toBe('1.00M');
     expect(formatTokens(2_500_000)).toBe('2.50M');
+  });
+});
+
+describe('formatResetTime', () => {
+  it('formats an epoch timestamp in the local timezone', () => {
+    const localReset = new Date(2026, 5, 23, 1, 29, 0).getTime() / 1000;
+    expect(formatResetTime(localReset)).toBe('01:29 23 Jun');
+  });
+
+  it('rejects invalid epoch timestamps', () => {
+    expect(formatResetTime(0)).toBeNull();
+    expect(formatResetTime(1.5)).toBeNull();
+    expect(formatResetTime(Number.NaN)).toBeNull();
+  });
+});
+
+describe('formatRateLimitWindow', () => {
+  it('uses compact hour and day labels', () => {
+    expect(formatRateLimitWindow(300, 'primary')).toBe('5h');
+    expect(formatRateLimitWindow(10080, 'secondary')).toBe('7d');
+  });
+
+  it('falls back when the duration is unavailable', () => {
+    expect(formatRateLimitWindow(null, 'primary')).toBe('primary');
   });
 });

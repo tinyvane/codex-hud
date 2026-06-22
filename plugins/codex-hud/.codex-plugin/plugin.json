@@ -1,6 +1,6 @@
 {
   "name": "codex-hud",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A local session HUD for OpenAI Codex",
   "author": {
     "name": "tinyvane",
@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "Codex HUD",
     "shortDescription": "Inspect live Codex session and tool activity.",
-    "longDescription": "Codex HUD records supported lifecycle events into a sanitized local state file and renders a compact status line with model, Git branch, duration, tools, turns, agents, and token usage.",
+    "longDescription": "Codex HUD records supported lifecycle and account usage data into a sanitized local state file and renders a compact status line with model, Git branch, duration, tools, turns, agents, token usage, and rate-limit reset times.",
     "developerName": "tinyvane",
     "category": "Developer Tools",
     "capabilities": ["Lifecycle hooks", "Local telemetry", "Terminal status"],
