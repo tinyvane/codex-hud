@@ -2,7 +2,7 @@
 
 An independent heads-up display for OpenAI Codex.
 
-> Status: `0.1.0` marketplace plugin candidate.
+> Status: `0.1.1` marketplace plugin candidate.
 
 ## Why A Separate Project?
 
@@ -55,7 +55,7 @@ codex plugin marketplace add tinyvane/codex-hud
 ### 2. Install the plugin
 
 ```bash
-codex plugin add codex-hud@personal
+codex plugin add codex-hud@codex-hud
 ```
 
 The plugin includes its runtime, skill, and lifecycle hooks. It does not require
@@ -71,6 +71,21 @@ hooks.
 
 Ask `@codex-hud Verify that Codex HUD is working.` The skill runs the bundled
 runtime and reports Codex, hook, and state health.
+
+### Migrating from 0.1.0
+
+Version `0.1.0` incorrectly used the generic marketplace name `personal`. If
+`codex plugin marketplace list` shows that `personal` points to this repository,
+migrate it before reinstalling:
+
+```bash
+codex plugin remove codex-hud@personal
+codex plugin marketplace remove personal
+codex plugin marketplace add tinyvane/codex-hud
+codex plugin add codex-hud@codex-hud
+```
+
+Do not remove `personal` when it points to a different marketplace.
 
 Healthy output:
 
@@ -136,7 +151,7 @@ global command.
 ## Uninstall
 
 ```bash
-codex plugin remove codex-hud@personal
+codex plugin remove codex-hud@codex-hud
 ```
 
 For a standalone installation, `codex-hud uninstall` removes only Codex HUD

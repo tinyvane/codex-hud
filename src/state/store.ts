@@ -9,7 +9,7 @@ import type { FileHandle } from 'node:fs/promises';
 export const STATE_DIR = join(homedir(), '.codex-hud');
 const STATE_FILE = join(STATE_DIR, 'state.json');
 const LOCK_FILE = join(STATE_DIR, 'state.lock');
-const LOCK_TIMEOUT_MS = 2_000;
+const LOCK_TIMEOUT_MS = 8_000;
 const LOCK_STALE_MS = 30_000;
 
 const delay = async (milliseconds: number): Promise<void> =>

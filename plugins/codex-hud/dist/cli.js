@@ -57,7 +57,7 @@ var HUD_VERSION, INITIAL_STATE;
 var init_types = __esm({
   "src/state/types.ts"() {
     "use strict";
-    HUD_VERSION = "0.1.0";
+    HUD_VERSION = "0.1.1";
     INITIAL_STATE = {
       sessionId: null,
       sessionStart: null,
@@ -5094,7 +5094,7 @@ import { randomUUID } from "node:crypto";
 var STATE_DIR = join(homedir(), ".codex-hud");
 var STATE_FILE = join(STATE_DIR, "state.json");
 var LOCK_FILE = join(STATE_DIR, "state.lock");
-var LOCK_TIMEOUT_MS = 2e3;
+var LOCK_TIMEOUT_MS = 8e3;
 var LOCK_STALE_MS = 3e4;
 var delay = async (milliseconds) => new Promise((resolve2) => setTimeout(resolve2, milliseconds));
 async function readState() {

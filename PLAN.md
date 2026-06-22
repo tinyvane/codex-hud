@@ -161,7 +161,7 @@ and recovers from transport interruptions.
 - [x] Package the CLI, lifecycle hooks, and operator workflow as a self-contained Codex plugin.
 - [x] Add a repository marketplace and validate install, update, and uninstall behavior.
 - [x] Add versioning, changelog, release verification, and supply-chain checks.
-- [ ] Publish a `0.1.0` release only after MVP acceptance criteria pass.
+- [ ] Publish a `0.1.x` release only after MVP acceptance criteria pass.
 - [ ] Gather compatibility feedback before declaring stable support.
 
 The plugin is the primary Codex distribution mechanism. It bundles lifecycle

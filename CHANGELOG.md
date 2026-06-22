@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.1 - 2026-06-22
+
+- Rename the repository marketplace from the generic `personal` identifier to
+  `codex-hud` so it cannot collide with a user's personal marketplace.
+- Update install, uninstall, validation, and migration guidance for the new
+  `codex-hud@codex-hud` identity.
+- Increase the state-lock wait budget so concurrently scheduled hooks remain
+  reliable when the host is under heavy load.
+
 ## 0.1.0 - 2026-06-22
 
 - Add a repository marketplace and installable Codex plugin manifest.

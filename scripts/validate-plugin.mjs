@@ -27,6 +27,11 @@ assert(/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(manifest.version), 'invalid
 assert(manifest.skills === './skills/', 'plugin must expose its skills directory');
 assert(Array.isArray(manifest.interface?.defaultPrompt), 'defaultPrompt must be an array');
 assert(manifest.interface.defaultPrompt.length <= 3, 'defaultPrompt supports at most 3 entries');
+assert(marketplace.name === 'codex-hud', 'repository marketplace name must be codex-hud');
+assert(
+  marketplace.interface?.displayName === 'Codex HUD',
+  'repository marketplace display name must be Codex HUD',
+);
 
 const entry = marketplace.plugins?.find((plugin) => plugin.name === manifest.name);
 assert(entry, 'marketplace is missing codex-hud');

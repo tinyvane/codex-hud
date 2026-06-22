@@ -51,6 +51,8 @@ describe('marketplace plugin', () => {
     const plugins = marketplace['plugins'] as Array<Record<string, unknown>>;
     const entry = plugins.find((plugin) => plugin['name'] === 'codex-hud');
 
+    expect(marketplace['name']).toBe('codex-hud');
+    expect(marketplace['interface']).toEqual({ displayName: 'Codex HUD' });
     expect(entry).toBeDefined();
     expect(entry?.['source']).toEqual({ source: 'local', path: './plugins/codex-hud' });
     expect(entry?.['policy']).toEqual({ installation: 'AVAILABLE', authentication: 'ON_INSTALL' });
