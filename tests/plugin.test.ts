@@ -79,8 +79,9 @@ describe('marketplace plugin', () => {
     expect(Object.keys(hooks).sort()).toEqual([...expectedEvents].sort());
     for (const event of expectedEvents) {
       const handler = hooks[event]?.[0]?.hooks[0];
-      expect(handler?.command).toContain('${CLAUDE_PLUGIN_ROOT}/dist/cli.js');
-      expect(handler?.commandWindows).toContain('%CLAUDE_PLUGIN_ROOT%/dist/cli.js');
+      expect(handler?.command).toContain('${PLUGIN_ROOT}/dist/cli.js');
+      expect(handler?.commandWindows).toContain('${PLUGIN_ROOT}/dist/cli.js');
+      expect(handler?.commandWindows).not.toContain('%CLAUDE_PLUGIN_ROOT%');
     }
   });
 
@@ -121,6 +122,18 @@ describe('marketplace plugin', () => {
 });
 
 describe('findPluginRoot', () => {
+  it('prefers the canonical Codex plugin root environment variable', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'codex-hud-plugin-'));
+    try {
+      await mkdir(join(root, '.codex-plugin'), { recursive: true });
+      await writeFile(join(root, '.codex-plugin', 'plugin.json'), '{}');
+
+      await expect(findPluginRoot(import.meta.url, { PLUGIN_ROOT: root })).resolves.toBe(root);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('prefers a valid plugin root from the hook environment', async () => {
     const root = await mkdtemp(join(tmpdir(), 'codex-hud-plugin-'));
     try {

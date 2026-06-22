@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.3 - 2026-06-22
+
+- Use Codex's `${PLUGIN_ROOT}` substitution for hook commands on every platform,
+  fixing Windows App Server sessions that execute hooks through PowerShell.
+- Add `codex-hud setup` to configure the supported native Codex TUI status line
+  while preserving existing fields and backing up `config.toml`.
+- Make Codex configuration writes atomic and report display setup separately
+  during verification.
+
 ## 0.1.2 - 2026-06-22
 
 - Remove the unsupported top-level `description` property from the bundled

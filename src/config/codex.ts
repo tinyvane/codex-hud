@@ -1,4 +1,6 @@
-import { readFile, writeFile, copyFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, copyFile, mkdir, rename, unlink } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { parse, stringify } from 'smol-toml';
 import { CODEX_DIR, CODEX_CONFIG_FILE } from './detect.js';
 
@@ -12,6 +14,38 @@ export interface CodexConfig {
   };
   hooks?: Record<string, unknown>;
   [key: string]: unknown;
+}
+
+export const HUD_STATUS_LINE = [
+  'model-with-reasoning',
+  'status',
+  'context-remaining',
+  'git-branch',
+  'task-progress',
+] as const;
+
+export function mergeHudStatusLine(config: CodexConfig): {
+  config: CodexConfig;
+  changed: boolean;
+} {
+  const current = config.tui?.status_line ?? [];
+  const statusLine = [...current];
+  for (const item of HUD_STATUS_LINE) {
+    if (!statusLine.includes(item)) statusLine.push(item);
+  }
+
+  const changed =
+    current.length !== statusLine.length ||
+    current.some((item, index) => item !== statusLine[index]);
+  return {
+    config: { ...config, tui: { ...config.tui, status_line: statusLine } },
+    changed,
+  };
+}
+
+export function hasHudStatusLine(config: CodexConfig): boolean {
+  const configured = config.tui?.status_line;
+  return Array.isArray(configured) && HUD_STATUS_LINE.every((item) => configured.includes(item));
 }
 
 export async function readCodexConfig(): Promise<CodexConfig> {
@@ -34,5 +68,22 @@ export async function writeCodexConfig(config: CodexConfig): Promise<void> {
     // No existing file to back up
   }
   const toml = stringify(config as Record<string, unknown>);
-  await writeFile(CODEX_CONFIG_FILE, toml, { encoding: 'utf8' });
+  const temporaryPath = join(
+    dirname(CODEX_CONFIG_FILE),
+    `config.${process.pid}.${randomUUID()}.tmp`,
+  );
+  try {
+    await writeFile(temporaryPath, toml, { encoding: 'utf8' });
+    await rename(temporaryPath, CODEX_CONFIG_FILE);
+  } catch (error) {
+    await unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
+}
+
+export async function setupHudStatusLine(): Promise<{ changed: boolean }> {
+  const current = await readCodexConfig();
+  const merged = mergeHudStatusLine(current);
+  if (merged.changed) await writeCodexConfig(merged.config);
+  return { changed: merged.changed };
 }

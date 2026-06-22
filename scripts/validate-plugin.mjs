@@ -56,12 +56,12 @@ for (const event of expectedEvents) {
   const handlers = hooks.hooks?.[event]?.flatMap((group) => group.hooks ?? []) ?? [];
   assert(handlers.length === 1, `${event} must have exactly one HUD hook`);
   assert(
-    handlers[0].command.includes('${CLAUDE_PLUGIN_ROOT}/dist/cli.js'),
+    handlers[0].command.includes('${PLUGIN_ROOT}/dist/cli.js'),
     `${event} Unix command must use the plugin root`,
   );
   assert(
-    handlers[0].commandWindows.includes('%CLAUDE_PLUGIN_ROOT%/dist/cli.js'),
-    `${event} Windows command must use the plugin root`,
+    handlers[0].commandWindows.includes('${PLUGIN_ROOT}/dist/cli.js'),
+    `${event} Windows command must use Codex plugin-root substitution`,
   );
 }
 

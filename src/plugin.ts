@@ -18,7 +18,7 @@ export async function findPluginRoot(
   entryUrl: string = import.meta.url,
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string | null> {
-  const envRoot = env['CLAUDE_PLUGIN_ROOT'];
+  const envRoot = env['PLUGIN_ROOT'] ?? env['CLAUDE_PLUGIN_ROOT'];
   if (envRoot) {
     const candidate = resolve(envRoot);
     if (await isPluginRoot(candidate)) return candidate;

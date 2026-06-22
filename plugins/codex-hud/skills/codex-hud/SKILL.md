@@ -26,6 +26,8 @@ Quote the runtime path on every platform.
 
 - Current status: run `status` and return the rendered line.
 - Installation health: run `verify` and summarize any failed check.
+- Visible TUI setup: run `setup`, report whether configuration changed, and
+  tell the user to restart Codex when it did.
 - Terminal integration: explain how to call the bundled `status` command from
   the user's shell prompt or tmux status bar using the resolved absolute path.
 - Live App Server telemetry: run `watch` only when the user explicitly asks for
@@ -35,7 +37,9 @@ Quote the runtime path on every platform.
 The plugin already bundles lifecycle hooks. Do not run `install` or edit the
 user's `~/.codex/hooks.json` for a marketplace installation. On a new install,
 tell the user to review the hook definitions with `/hooks`, trust them, and use
-a new thread so Codex loads the plugin components.
+a new thread so Codex loads the plugin components. The `setup` command edits
+only the supported native `tui.status_line` setting and creates
+`~/.codex/config.toml.bak` before a change.
 
 Never print the full normalized state file unless the user explicitly asks for
 it. Do not read transcripts, credentials, or raw hook payloads.

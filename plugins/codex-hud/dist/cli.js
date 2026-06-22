@@ -57,7 +57,7 @@ var HUD_VERSION, INITIAL_STATE;
 var init_types = __esm({
   "src/state/types.ts"() {
     "use strict";
-    HUD_VERSION = "0.1.2";
+    HUD_VERSION = "0.1.3";
     INITIAL_STATE = {
       sessionId: null,
       sessionStart: null,
@@ -1011,7 +1011,34 @@ var init_dist = __esm({
 });
 
 // src/config/codex.ts
-import { readFile as readFile3, writeFile as writeFile2, copyFile, mkdir as mkdir2 } from "node:fs/promises";
+var codex_exports = {};
+__export(codex_exports, {
+  HUD_STATUS_LINE: () => HUD_STATUS_LINE,
+  hasHudStatusLine: () => hasHudStatusLine,
+  mergeHudStatusLine: () => mergeHudStatusLine,
+  readCodexConfig: () => readCodexConfig,
+  setupHudStatusLine: () => setupHudStatusLine,
+  writeCodexConfig: () => writeCodexConfig
+});
+import { readFile as readFile3, writeFile as writeFile2, copyFile, mkdir as mkdir2, rename as rename2, unlink as unlink2 } from "node:fs/promises";
+import { dirname as dirname3, join as join5 } from "node:path";
+import { randomUUID as randomUUID2 } from "node:crypto";
+function mergeHudStatusLine(config) {
+  const current = config.tui?.status_line ?? [];
+  const statusLine = [...current];
+  for (const item of HUD_STATUS_LINE) {
+    if (!statusLine.includes(item)) statusLine.push(item);
+  }
+  const changed = current.length !== statusLine.length || current.some((item, index) => item !== statusLine[index]);
+  return {
+    config: { ...config, tui: { ...config.tui, status_line: statusLine } },
+    changed
+  };
+}
+function hasHudStatusLine(config) {
+  const configured = config.tui?.status_line;
+  return Array.isArray(configured) && HUD_STATUS_LINE.every((item) => configured.includes(item));
+}
 async function readCodexConfig() {
   try {
     const raw = await readFile3(CODEX_CONFIG_FILE, "utf8");
@@ -1030,13 +1057,37 @@ async function writeCodexConfig(config) {
   } catch {
   }
   const toml = stringify(config);
-  await writeFile2(CODEX_CONFIG_FILE, toml, { encoding: "utf8" });
+  const temporaryPath = join5(
+    dirname3(CODEX_CONFIG_FILE),
+    `config.${process.pid}.${randomUUID2()}.tmp`
+  );
+  try {
+    await writeFile2(temporaryPath, toml, { encoding: "utf8" });
+    await rename2(temporaryPath, CODEX_CONFIG_FILE);
+  } catch (error) {
+    await unlink2(temporaryPath).catch(() => void 0);
+    throw error;
+  }
 }
+async function setupHudStatusLine() {
+  const current = await readCodexConfig();
+  const merged = mergeHudStatusLine(current);
+  if (merged.changed) await writeCodexConfig(merged.config);
+  return { changed: merged.changed };
+}
+var HUD_STATUS_LINE;
 var init_codex = __esm({
   "src/config/codex.ts"() {
     "use strict";
     init_dist();
     init_detect();
+    HUD_STATUS_LINE = [
+      "model-with-reasoning",
+      "status",
+      "context-remaining",
+      "git-branch",
+      "task-progress"
+    ];
   }
 });
 
@@ -1051,7 +1102,7 @@ __export(install_exports, {
   removeHudHooks: () => removeHudHooks,
   uninstall: () => uninstall
 });
-import { readFile as readFile4, writeFile as writeFile3, copyFile as copyFile2, mkdir as mkdir3, rename as rename2, unlink as unlink2 } from "node:fs/promises";
+import { readFile as readFile4, writeFile as writeFile3, copyFile as copyFile2, mkdir as mkdir3, rename as rename3, unlink as unlink3 } from "node:fs/promises";
 function makeHudMatcherGroup() {
   return { hooks: [{ type: "command", command: HUD_COMMAND }] };
 }
@@ -1099,7 +1150,7 @@ async function writeHooksConfig(config) {
   await mkdir3(CODEX_DIR, { recursive: true });
   const tmp = `${CODEX_HOOKS_FILE}.tmp`;
   await writeFile3(tmp, JSON.stringify(config, null, 2) + "\n", { encoding: "utf8" });
-  await rename2(tmp, CODEX_HOOKS_FILE);
+  await rename3(tmp, CODEX_HOOKS_FILE);
 }
 async function backupHooksConfig() {
   try {
@@ -1131,7 +1182,7 @@ async function uninstall() {
     const remainingEvents = Object.keys(cleaned.hooks ?? {});
     if (remainingEvents.length === 0 && Object.keys(cleaned).length <= 1) {
       try {
-        await unlink2(CODEX_HOOKS_FILE);
+        await unlink3(CODEX_HOOKS_FILE);
       } catch {
       }
     } else {
@@ -4884,14 +4935,14 @@ __export(client_exports, {
   DEFAULT_SOCKET_PATH: () => DEFAULT_SOCKET_PATH
 });
 import { homedir as homedir3 } from "node:os";
-import { join as join5 } from "node:path";
+import { join as join6 } from "node:path";
 var DEFAULT_SOCKET_PATH, RECONNECT_BASE_MS, RECONNECT_MAX_MS, REQUEST_TIMEOUT_MS, AppServerClient;
 var init_client = __esm({
   "src/adapter/app-server/client.ts"() {
     "use strict";
     init_wrapper();
     init_schema();
-    DEFAULT_SOCKET_PATH = join5(
+    DEFAULT_SOCKET_PATH = join6(
       homedir3(),
       ".codex",
       "app-server-control",
@@ -5366,7 +5417,7 @@ async function isPluginRoot(path) {
   }
 }
 async function findPluginRoot(entryUrl = import.meta.url, env = process.env) {
-  const envRoot = env["CLAUDE_PLUGIN_ROOT"];
+  const envRoot = env["PLUGIN_ROOT"] ?? env["CLAUDE_PLUGIN_ROOT"];
   if (envRoot) {
     const candidate = resolve(envRoot);
     if (await isPluginRoot(candidate)) return candidate;
@@ -5398,6 +5449,20 @@ async function main() {
       const state = await readState();
       const line = renderStatusLine(state, Date.now());
       process.stdout.write(line + "\n");
+      break;
+    }
+    case "setup": {
+      const { isCodexInstalled: isCodexInstalled2 } = await Promise.resolve().then(() => (init_detect(), detect_exports));
+      const { setupHudStatusLine: setupHudStatusLine2 } = await Promise.resolve().then(() => (init_codex(), codex_exports));
+      if (!await isCodexInstalled2()) {
+        process.stderr.write("codex-hud setup: Codex directory not found (~/.codex/)\n");
+        process.exitCode = 1;
+        return;
+      }
+      const { changed } = await setupHudStatusLine2();
+      process.stdout.write(
+        changed ? "codex-hud: configured the native Codex status line\nRestart Codex to display it.\n" : "codex-hud: native Codex status line is already configured\n"
+      );
       break;
     }
     case "install": {
@@ -5442,6 +5507,7 @@ async function main() {
     }
     case "verify": {
       const { isCodexInstalled: isCodexInstalled2 } = await Promise.resolve().then(() => (init_detect(), detect_exports));
+      const { hasHudStatusLine: hasHudStatusLine2, readCodexConfig: readCodexConfig2 } = await Promise.resolve().then(() => (init_codex(), codex_exports));
       const { readHooksConfig: readHooksConfig2 } = await Promise.resolve().then(() => (init_install(), install_exports));
       const codexOk = await isCodexInstalled2();
       process.stdout.write(`Codex:   ${codexOk ? "installed" : "NOT FOUND"}  (~/.codex/)
@@ -5462,6 +5528,10 @@ async function main() {
         process.stdout.write(`Hooks:   NOT CONFIGURED  (run: codex-hud install)
 `);
       }
+      const nativeHudConfigured = hasHudStatusLine2(await readCodexConfig2());
+      process.stdout.write(
+        nativeHudConfigured ? "Display: native Codex status line configured\n" : "Display: NOT CONFIGURED  (run: codex-hud setup)\n"
+      );
       const now = Date.now();
       const state = await readState();
       if (state.lastUpdated > 0) {
@@ -5549,6 +5619,7 @@ async function main() {
       }
       process.stderr.write("Usage: codex-hud <command>\n\n");
       process.stderr.write("Commands:\n");
+      process.stderr.write("  setup      Configure the visible native Codex status line\n");
       process.stderr.write("  install    Configure hooks for standalone source/npm installs\n");
       process.stderr.write("  uninstall  Remove codex-hud hooks from Codex configuration\n");
       process.stderr.write("  verify     Check installation and show current session state\n");

@@ -33,6 +33,23 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'setup': {
+      const { isCodexInstalled } = await import('./config/detect.js');
+      const { setupHudStatusLine } = await import('./config/codex.js');
+      if (!(await isCodexInstalled())) {
+        process.stderr.write('codex-hud setup: Codex directory not found (~/.codex/)\n');
+        process.exitCode = 1;
+        return;
+      }
+      const { changed } = await setupHudStatusLine();
+      process.stdout.write(
+        changed
+          ? 'codex-hud: configured the native Codex status line\nRestart Codex to display it.\n'
+          : 'codex-hud: native Codex status line is already configured\n',
+      );
+      break;
+    }
+
     case 'install': {
       if (await findPluginRoot()) {
         process.stdout.write(
@@ -84,6 +101,7 @@ async function main(): Promise<void> {
 
     case 'verify': {
       const { isCodexInstalled } = await import('./config/detect.js');
+      const { hasHudStatusLine, readCodexConfig } = await import('./config/codex.js');
       const { readHooksConfig } = await import('./install.js');
 
       const codexOk = await isCodexInstalled();
@@ -106,6 +124,13 @@ async function main(): Promise<void> {
       } else {
         process.stdout.write(`Hooks:   NOT CONFIGURED  (run: codex-hud install)\n`);
       }
+
+      const nativeHudConfigured = hasHudStatusLine(await readCodexConfig());
+      process.stdout.write(
+        nativeHudConfigured
+          ? 'Display: native Codex status line configured\n'
+          : 'Display: NOT CONFIGURED  (run: codex-hud setup)\n',
+      );
 
       const now = Date.now();
       const state = await readState();
@@ -204,6 +229,7 @@ async function main(): Promise<void> {
       }
       process.stderr.write('Usage: codex-hud <command>\n\n');
       process.stderr.write('Commands:\n');
+      process.stderr.write('  setup      Configure the visible native Codex status line\n');
       process.stderr.write('  install    Configure hooks for standalone source/npm installs\n');
       process.stderr.write('  uninstall  Remove codex-hud hooks from Codex configuration\n');
       process.stderr.write('  verify     Check installation and show current session state\n');

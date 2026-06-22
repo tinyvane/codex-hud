@@ -2,7 +2,7 @@
 
 An independent heads-up display for OpenAI Codex.
 
-> Status: `0.1.2` marketplace plugin candidate.
+> Status: `0.1.3` marketplace plugin candidate.
 
 ## Why A Separate Project?
 
@@ -19,7 +19,15 @@ than adapting Claude-specific stdin and transcript contracts.
 - Provide reversible installation and configuration changes.
 - Fail quietly and clearly without breaking a Codex session.
 
-## Status Line Format
+## Display Surfaces
+
+Codex plugins cannot inject an arbitrary custom footer into the TUI. Codex HUD
+therefore uses two supported surfaces:
+
+- the native Codex status line for an always-visible footer
+- the hook-backed `status` command for richer plugin state on demand
+
+The hook-backed line has this format:
 
 ```
 o3 @main 2m30s | > Bash | turns:4 | v0.0.1
@@ -74,7 +82,14 @@ Start Codex, open `/hooks`, review the six Codex HUD hook definitions, and trust
 them. Start a new thread after installation so Codex loads the plugin skill and
 hooks.
 
-### 4. Verify
+### 4. Configure the visible status line
+
+Ask `@codex-hud Set up the visible Codex HUD status line.` The skill runs the
+bundled `setup` command, preserves existing status-line fields, backs up
+`~/.codex/config.toml`, and adds supported model, run state, context, Git branch,
+and task progress fields. Restart Codex after configuration changes.
+
+### 5. Verify
 
 Ask `@codex-hud Verify that Codex HUD is working.` The skill runs the bundled
 runtime and reports Codex, hook, and state health.
@@ -99,13 +114,14 @@ Healthy output:
 ```
 Codex:   installed  (~/.codex/)
 Hooks:   bundled with installed plugin (review with /hooks)
+Display: native Codex status line configured
 State:   ~/.codex-hud/state.json  (updated 3s ago)
 Model:   o3
 Branch:  main
 Session: 2m30s  |  turns: 4  |  agents: 0
 ```
 
-### 5. Show the status line
+### 6. Show the hook-backed status
 
 Ask `@codex-hud Show my current Codex HUD status.`
 
@@ -126,7 +142,7 @@ PS1='$(codex-hud status 2>/dev/null) $ '
 set -g status-right '#(codex-hud status 2>/dev/null)'
 ```
 
-### 6. Live telemetry
+### 7. Live telemetry
 
 The optional watcher consumes the experimental App Server WebSocket/Unix-socket
 transport. Start App Server with an explicit supported local transport before
@@ -169,7 +185,8 @@ entries from `~/.codex/hooks.json`. Other hooks and backup files are preserved.
 **HUD shows no data after starting Codex:**
 1. Start a new thread after installing the plugin.
 2. Open `/hooks` and confirm the Codex HUD hooks are trusted.
-3. Ask `@codex-hud` to run verification.
+3. Ask `@codex-hud` to set up the visible status line, then restart Codex.
+4. Ask `@codex-hud` to run verification.
 
 **`codex-hud install` reports Codex not found:**
 Install the Codex CLI and confirm `~/.codex/` exists, then re-run install.

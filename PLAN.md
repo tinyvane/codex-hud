@@ -2,7 +2,7 @@
 
 ## Status
 
-M0 complete. M1 complete. M2 complete. M3 implementation complete; integration tests with live daemon pending. M4 active: Codex plugin packaging and marketplace installation.
+M0 complete. M1 complete. M2 complete. M3 implementation complete; integration tests with live daemon pending. M4 active: marketplace runtime acceptance and native TUI setup.
 
 ## Objective
 
@@ -161,6 +161,8 @@ and recovers from transport interruptions.
 - [x] Package the CLI, lifecycle hooks, and operator workflow as a self-contained Codex plugin.
 - [x] Add a repository marketplace and validate install, update, and uninstall behavior.
 - [x] Add versioning, changelog, release verification, and supply-chain checks.
+- [ ] Verify plugin hooks through a real App Server session on Windows, macOS, and Linux.
+- [ ] Configure the supported native TUI status line through an explicit, reversible setup command.
 - [ ] Publish a `0.1.x` release only after MVP acceptance criteria pass.
 - [ ] Gather compatibility feedback before declaring stable support.
 
