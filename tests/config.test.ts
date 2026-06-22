@@ -7,6 +7,12 @@ import {
 } from '../src/config/codex.js';
 
 describe('native Codex HUD status line', () => {
+  it('includes context and account usage remaining fields', () => {
+    expect(HUD_STATUS_LINE).toContain('context-remaining');
+    expect(HUD_STATUS_LINE).toContain('five-hour-limit');
+    expect(HUD_STATUS_LINE).toContain('weekly-limit');
+  });
+
   it('adds the recommended fields without discarding existing TUI configuration', () => {
     const original: CodexConfig = {
       tui: { notifications: false, status_line: ['current-dir'] },

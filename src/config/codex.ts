@@ -20,6 +20,8 @@ export const HUD_STATUS_LINE = [
   'model-with-reasoning',
   'status',
   'context-remaining',
+  'five-hour-limit',
+  'weekly-limit',
   'git-branch',
   'task-progress',
 ] as const;

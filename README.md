@@ -2,7 +2,7 @@
 
 An independent heads-up display for OpenAI Codex.
 
-> Status: `0.1.3` marketplace plugin candidate.
+> Status: `0.1.4` marketplace plugin candidate.
 
 ## Why A Separate Project?
 
@@ -86,8 +86,9 @@ hooks.
 
 Ask `@codex-hud Set up the visible Codex HUD status line.` The skill runs the
 bundled `setup` command, preserves existing status-line fields, backs up
-`~/.codex/config.toml`, and adds supported model, run state, context, Git branch,
-and task progress fields. Restart Codex after configuration changes.
+`~/.codex/config.toml`, and adds supported model, run state, context, primary and
+secondary account usage remaining, Git branch, and task progress fields. Restart
+Codex after configuration changes.
 
 ### 5. Verify
 

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.4 - 2026-06-22
+
+- Add Codex's native primary and secondary account usage remaining fields to
+  the configured TUI status line.
+
 ## 0.1.3 - 2026-06-22
 
 - Use Codex's `${PLUGIN_ROOT}` substitution for hook commands on every platform,

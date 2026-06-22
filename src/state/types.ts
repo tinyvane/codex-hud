@@ -1,4 +1,4 @@
-export const HUD_VERSION = '0.1.3';
+export const HUD_VERSION = '0.1.4';
 
 export interface TokenUsage {
   inputUsed: number;
