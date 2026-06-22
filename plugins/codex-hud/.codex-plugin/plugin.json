@@ -1,6 +1,6 @@
 {
   "name": "codex-hud",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A local session HUD for OpenAI Codex",
   "author": {
     "name": "tinyvane",

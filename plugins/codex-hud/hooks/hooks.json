@@ -1,5 +1,4 @@
 {
-  "description": "Record Codex lifecycle activity for the local HUD.",
   "hooks": {
     "SessionStart": [
       {

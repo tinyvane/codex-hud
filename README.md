@@ -2,7 +2,7 @@
 
 An independent heads-up display for OpenAI Codex.
 
-> Status: `0.1.1` marketplace plugin candidate.
+> Status: `0.1.2` marketplace plugin candidate.
 
 ## Why A Separate Project?
 
@@ -60,6 +60,13 @@ codex plugin add codex-hud@codex-hud
 
 The plugin includes its runtime, skill, and lifecycle hooks. It does not require
 a global npm installation and does not edit `~/.codex/hooks.json`.
+
+### Update the plugin
+
+```bash
+codex plugin marketplace upgrade codex-hud
+codex plugin add codex-hud@codex-hud
+```
 
 ### 3. Trust and load the hooks
 

@@ -75,6 +75,7 @@ describe('marketplace plugin', () => {
       'Stop',
     ];
 
+    expect(Object.keys(config)).toEqual(['hooks']);
     expect(Object.keys(hooks).sort()).toEqual([...expectedEvents].sort());
     for (const event of expectedEvents) {
       const handler = hooks[event]?.[0]?.hooks[0];

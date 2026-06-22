@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.1.2 - 2026-06-22
+
+- Remove the unsupported top-level `description` property from the bundled
+  hooks configuration.
+- Reject unsupported top-level hook configuration fields during tests and
+  release validation.
+
 ## 0.1.1 - 2026-06-22
 
 - Rename the repository marketplace from the generic `personal` identifier to

@@ -57,7 +57,7 @@ var HUD_VERSION, INITIAL_STATE;
 var init_types = __esm({
   "src/state/types.ts"() {
     "use strict";
-    HUD_VERSION = "0.1.1";
+    HUD_VERSION = "0.1.2";
     INITIAL_STATE = {
       sessionId: null,
       sessionStart: null,

@@ -48,6 +48,10 @@ const expectedEvents = [
   'SubagentStop',
   'Stop',
 ];
+assert(
+  Object.keys(hooks).length === 1 && typeof hooks.hooks === 'object',
+  'hooks config must contain only the top-level hooks field',
+);
 for (const event of expectedEvents) {
   const handlers = hooks.hooks?.[event]?.flatMap((group) => group.hooks ?? []) ?? [];
   assert(handlers.length === 1, `${event} must have exactly one HUD hook`);
