@@ -2,11 +2,11 @@
 
 ## Status
 
-M0 complete. M1 complete. M2 complete. M3 implementation complete, including
-cached account rate-limit reset timestamps from the generated Codex 0.141.0 App
-Server protocol; integration tests with a live daemon remain pending. M4 active:
-marketplace runtime acceptance and native TUI setup, including project identity
-and account usage limits.
+M0 complete. M1 complete. M2 complete. M3 core implementation complete,
+including cached account rate-limit reset timestamps from the generated Codex
+0.141.0 App Server protocol; resource bounds and integration tests remain
+pending. M4 active: marketplace runtime acceptance and native TUI setup,
+including project identity and account usage limits.
 
 ## Objective
 
@@ -121,7 +121,7 @@ tests/
 - [x] Compare native, companion-process, and wrapper-based display approaches.
 - [x] Decide the initial output surface and write an architecture decision.
 - [x] Define supported Codex versions and platform scope for the MVP.
-- [ ] Generate and inspect App Server schemas from the installed Codex version.
+- [x] Generate and inspect App Server schemas from the installed Codex version.
 
 Exit criterion: a small prototype receives supported Codex events and displays a
 live state update without parsing undocumented terminal output.
